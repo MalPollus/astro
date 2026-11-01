@@ -21,6 +21,8 @@ THIS_DAY = (
     datetime.datetime.now().year * 365.256
 )
 
+OUTPUT_DIR = "output/"
+
 #image creation
 img = Image.new("RGBA", SCREEN_RES, BASE_COLOR)
 draw = ImageDraw.Draw(img)
@@ -95,5 +97,8 @@ font = ImageFont.truetype("Chillax-Semibold.otf", 32)
 draw.text((SCREEN_RES[0] - 200, SCREEN_RES[1] - 180),"astro",ORBIT_COLOR,font=font)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-img_path = os.path.join(BASE_DIR, "output/img.png") #ricorda di controllare se output/ esiste
+if not os.path.isdir(OUTPUT_DIR):
+    os.mkdir(OUTPUT_DIR)
+
+img_path = os.path.join(BASE_DIR, OUTPUT_DIR, "img.png")
 img.save(img_path)
