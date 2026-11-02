@@ -1,14 +1,15 @@
 ## INSTALLATION INSTRUCTIONS
 
-#### FOR LINUX
+#### FOR LINUX AND MAC
 
-Run the file **run.sh** and set the background of your pc to **img.png** (img.png should be in the output directory, if it isn't there try running **main.py**. If it still doesn't work you can contact me at *malpollus@gmail.com*)
-To make the background update, set the **run.sh** file to run at pc startup using your disto's tools.
+Run the file **linux_mac_run.sh** and set the background of your pc to **img.png** (img.png should be in the output directory, if it isn't there try running **main.py**. If it still doesn't work you can contact me at *malpollus@gmail.com*)
+To make the background update, set the **linux_mac_run.sh** file to run at pc startup using your disto's tools.
 
-#### FOR WINDOWS AND MAC
+#### FOR WINDOWS
 
-The **run.sh** file works only on linux, you have to setup the virtual enviroment manually and install the libraries listed in **requirements.txt**. Then set **main.py** to run at pc startup and set the background to **img.png**.
-If something doesn't work contact me at *malpollus@gmail.com*.
+Run the file **windows_run.bat** and set the background of your pc to **img.png** (img.png should be in the output directory, if it isn't there try running **main.py**. If it still doesn't work you can contact me at *malpollus@gmail.com*)
+To make the background update, set the **windows_run.bat** file to run at pc startup using windows tools.
+The **windows_run.bat** file should be able to run in both windows 10 and 11.
 
 ## CUSTOMIZATION
 

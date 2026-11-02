@@ -1,13 +1,21 @@
 #!/bin/bash
 
 # moves to project dir
-cd "$(dirname "$(readlink -f "$0")")" || exit 1
+cd "$(dirname "${BASH_SOURCE[0]}")" || exit 1
 
 fallisci() {
     echo "Errore: $1"
     read -p "premi invio per chiudere questa finestra"
     exit 1
 }
+
+# detects the OS
+OS="$(uname -s)"
+case "$OS" in
+    Linux|Darwin) ;;
+    MINGW*|MSYS*|CYGWIN*) fallisci "On Windows please use windows_run.bat instead." ;;
+    *) fallisci "Unsupported operating system: $OS" ;;
+esac
 
 # uses sudo if needed
 if [ "$EUID" -eq 0 ]; then
@@ -18,8 +26,48 @@ else
     SUDO=""
 fi
 
-# python install and venv setup (with compatibility with different distros)
-installa_python() {
+# looks for a working Python (with venv + pip) and stores it in $PYTHON
+PYTHON=""
+trova_python() {
+    local cmd
+    PYTHON=""
+    for cmd in python3 python; do
+        if command -v "$cmd" &> /dev/null && "$cmd" -c "import venv, ensurepip" &> /dev/null; then
+            PYTHON="$cmd"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# python install on macOS (via Homebrew)
+installa_mac() {
+    local brew_path
+
+    if ! command -v brew &> /dev/null; then
+        # Homebrew is often installed but not in PATH in non-login shells
+        for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+            if [ -x "$brew_path" ]; then
+                eval "$("$brew_path" shellenv)"
+                break
+            fi
+        done
+    fi
+
+    if command -v brew &> /dev/null; then
+        echo "Spotted 'brew' (Homebrew)..."
+        brew install python
+    else
+        fallisci "Homebrew not found. Install Python from https://www.python.org/downloads/macos/ or Homebrew from https://brew.sh and run the script again."
+    fi
+}
+
+# python install on Linux (with compatibility with different distros)
+installa_linux() {
+    if [ -z "$SUDO" ] && [ "$EUID" -ne 0 ]; then
+        fallisci "We need root access to install Python, but sudo is not available."
+    fi
+
     if command -v apt-get &> /dev/null; then
         echo "Spotted 'apt' (Debian/Ubuntu)..."
         $SUDO apt-get update && $SUDO apt-get install -y python3 python3-venv python3-pip
@@ -50,20 +98,20 @@ installa_python() {
 }
 
 # checks if python is installed and if the virtual enviroment works
-if command -v python3 &> /dev/null && python3 -c "import venv, ensurepip" &> /dev/null; then
+if trova_python; then
     echo "Python (with venv) already installed."
 else
-    echo "Python3 or venv not found! Searching for package manager..."
+    echo "Python or venv not found! Installing..."
 
-    if [ -z "$SUDO" ] && [ "$EUID" -ne 0 ]; then
-        fallisci "We need root access to install Python, but sudo is not available."
+    if [ "$OS" = "Darwin" ]; then
+        installa_mac
+    else
+        installa_linux
     fi
 
-    installa_python
-
     # check
-    if command -v python3 &> /dev/null && python3 -c "import venv, ensurepip" &> /dev/null; then
-        echo "Python3 installed!"
+    if trova_python; then
+        echo "Python installed!"
     else
         fallisci "Something went wrong during the Python installation."
     fi
@@ -73,7 +121,7 @@ fi
 if [ ! -f ".venv/bin/activate" ]; then
     echo "Creating venv..."
     rm -rf .venv
-    python3 -m venv .venv || fallisci "Could not create venv."
+    "$PYTHON" -m venv .venv || fallisci "Could not create venv."
 fi
 
 # shellcheck disable=SC1091
@@ -81,7 +129,7 @@ source .venv/bin/activate || fallisci "Could not activate venv."
 
 if [ -f "requirements.txt" ]; then
     echo "Installing requirements..."
-    pip install -r requirements.txt || fallisci "installazione dei requisiti non riuscita."
+    python -m pip install -r requirements.txt || fallisci "Could not install the requirements."
 else
     echo "requirements.txt doesn't exist!"
     echo "Try to reinstall the repo or contact me at malpollus@gmail.com"
@@ -93,7 +141,7 @@ if [ ! -f "main.py" ]; then
     fallisci "main.py not found. Try to reinstall the repo or contact me at malpollus@gmail.com"
 fi
 
-python3 main.py
+python main.py
 status=$?
 
 if [ $status -ne 0 ]; then
