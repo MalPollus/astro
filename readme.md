@@ -18,3 +18,12 @@ To change the planets size you have to play around with the third parameter of t
 If you want to remove some planets just comment out the **planet.drawPlanet()** line (e.g comment out: *#mars.drawPlanet()*)
 
 You can change the code at your will.
+
+
+## EXAMPLES
+
+![Alt text](/samples/s1.png?raw=true "screenshot 1")
+
+![Alt text](/samples/s2.png?raw=true "screenshot 2")
+
+![Alt text](/samples/s3.png?raw=true "screenshot 3")
